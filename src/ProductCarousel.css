@@ -1,0 +1,98 @@
+.pc-card {
+  border: 1px solid #d6dde8;
+  border-radius: 5px;
+  background: #fff;
+}
+.pc-badge {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  background: #ff9a3c;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.pc-img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.pc-brand {
+  font-size: 13px;
+  color: #8a97b8;
+}
+.pc-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #3d4f7c;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pc-stars {
+  font-size: 12px;
+  color: #ffa24b;
+}
+.pc-stars .pc-star-off {
+  color: #e3e8f1;
+}
+.pc-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3d4f7c;
+}
+.pc-old {
+  font-size: 16px;
+  color: #8a97b8;
+}
+.pc-arrow {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 13px;
+  color: #6b7ba3;
+  background: transparent;
+  border: 1px solid #8a97b8;
+  border-radius: 5px;
+  transition: background 0.2s, color 0.2s;
+}
+.pc-arrow:hover {
+  background: #6b7ba3;
+  color: #fff;
+}
+
+.pc-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px 0;
+}
+.pc-track {
+  --pc-per-view: 1;
+  display: flex;
+  transition: transform 0.4s ease;
+  transform: translateX(calc(var(--i) * -100% / var(--pc-per-view)));
+}
+.pc-item {
+  flex: 0 0 calc(100% / var(--pc-per-view));
+  min-width: 0;
+  padding: 0 12px;
+}
+@media (min-width: 768px) {
+  .pc-track { --pc-per-view: 2; }
+}
+@media (min-width: 1200px) {
+  .pc-track { --pc-per-view: 3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-track { transition: none; }
+}

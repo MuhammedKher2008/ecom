@@ -1,62 +1,90 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { CardContext } from "../context/cartContext";
+import { WishlistContext } from "../context/WishlistContext";
+
+export const fmt = (n) =>
+  n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
 export default function Card({ product }) {
   const { addToCard } = useContext(CardContext);
+  const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
+  const [loading, setLoading] = useState(false);
+
+  const hasPrev = product.prevprice > product.price;
+  const discount = hasPrev
+    ? Math.round((1 - product.price / product.prevprice) * 100)
+    : 0;
+  const rating = Math.min(5, Math.max(0, product.raiting || 0));
+  const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+  const wished = isInWishlist(product.id);
+
+  const handleAddToCart = () => {
+    if (loading) return;
+    setLoading(true);
+    setTimeout(() => {
+      addToCard(product);
+      setLoading(false);
+    }, 1000);
+  };
 
   return (
-    <div className="col-12 m-2 col-md-6 col-lg-4 col-xl-3">
+    <div className="col-12 col-md-6 col-lg-4 col-xl-3 my-4">
       <div
-        className="card p-3"
-        style={{
-          border: "1px solid #DDE4F0",
-          borderRadius: "4px",
-        }}
+        className="card p-3 product-card"
+        style={{ border: "1px solid #DDE4F0", borderRadius: "4px" }}
       >
         {/* Discount */}
-        <span
-          className="badge rounded-pill align-self-start mb-2"
-          style={{
-            backgroundColor: "#FF9B45",
-            fontSize: "12px",
-          }}
-        >
-          -17%
-        </span>
+        {hasPrev && (
+          <span
+            className="badge rounded-pill align-self-start mb-2"
+            style={{ backgroundColor: "#FF9B45", fontSize: "12px" }}
+          >
+            -{discount}%
+          </span>
+        )}
 
         {/* Image */}
         <div className="text-center">
           <img
             src={product.img}
             className="img-fluid"
-            style={{
-              width: "180px",
-              height: "150px",
-              objectFit: "contain",
-            }}
+            style={{ width: "180px", height: "150px", objectFit: "contain" }}
             alt={product.title}
           />
         </div>
 
+        {/* Hover Actions */}
+        <div className="product-actions">
+          <button type="button">
+            <i class="bi bi-lightning-fill"></i>
+          </button>
+          <button
+            type="button"
+            onClick={() => toggleWishlist(product)}
+            className={wished ? "text-danger" : ""}
+          >
+            <i className="bi bi-heart-fill"></i>
+          </button>
+          <button type="button">↗</button>
+          <button type="button">👁</button>
+        </div>
+
         {/* Product Info */}
         <div className="mt-3">
-          <small style={{ color: "#8B9AB5" }}>Apple</small>
+          <small style={{ color: "#8B9AB5", textTransform: "capitalize" }}>
+            {product.brand}
+          </small>
 
           <h6
             className="mt-1 mb-2"
-            style={{
-              color: "#425A8B",
-              fontWeight: "600",
-              lineHeight: "1.5",
-            }}
+            style={{ color: "#425A8B", fontWeight: "600", lineHeight: "1.5" }}
           >
             {product.title}
           </h6>
 
           {/* Rating */}
           <div className="mb-2">
-            <span style={{ color: "#FF9B45", fontSize: "18px" }}>★★★★★</span>
-
+            <span style={{ color: "#FF9B45", fontSize: "18px" }}>{stars}</span>
             <span
               className="ms-1"
               style={{ color: "#6680A9", fontSize: "13px" }}
@@ -69,39 +97,41 @@ export default function Card({ product }) {
           <div className="mb-3">
             <span
               className="fw-bold"
-              style={{
-                color: "#425A8B",
-                fontSize: "20px",
-              }}
+              style={{ color: "#425A8B", fontSize: "20px" }}
             >
-              ${product.price}
+              ${fmt(product.price)}
             </span>
-
-            <del
-              className="ms-2"
-              style={{
-                color: "#8B9AB5",
-                fontSize: "14px",
-              }}
-            >
-              ${product.prevprice}
-            </del>
+            {hasPrev && (
+              <del
+                className="ms-2"
+                style={{ color: "#8B9AB5", fontSize: "14px" }}
+              >
+                ${fmt(product.prevprice)}
+              </del>
+            )}
           </div>
 
           {/* Add To Cart */}
           <button
             className="btn w-100 mb-3"
-            onClick={() => addToCard(product)}
+            onClick={handleAddToCart}
+            disabled={loading}
             style={{
               border: "1px solid #668BE0",
               color: "#425A8B",
               backgroundColor: "white",
             }}
           >
-            Add To Cart
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Adding to cart...
+              </>
+            ) : (
+              "Add to Cart"
+            )}
           </button>
 
-          {/* Features */}
           <ul
             className="mb-0 ps-3"
             style={{

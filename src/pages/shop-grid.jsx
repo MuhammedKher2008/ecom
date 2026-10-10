@@ -1,16 +1,153 @@
 import "../app.css";
 import { useState } from "react";
-import DoubleRange from "../components/Dobulerange";
 import ColorPicker from "../components/ColorPicker";
 import bgtopsell from "../assets/bg-topsell.png";
-import imgsp3 from "../assets/imgsp3.png";
 import Card from "../components/card";
 import data from "../data";
 import shopgrid from "../assets/shop-grid-banner-image.png";
+import { fmt } from "../components/card";
+import Card2 from "../components/card2";
 
 export default function ShopGrid() {
-  const [range, setRange] = useState([0, 300]);
   const [color, setColor] = useState("Red");
+  const [sortType, setSortType] = useState("latest");
+  const [showitems, setShowItems] = useState(30);
+  const [loadingId, setLoadingId] = useState(null);
+  const [selectedPrices, setSelectedPrices] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [cardType, setCardType] = useState("grid");
+
+  const handleAddToCart = (product) => {
+    setLoadingId(product.id); // loading başla
+
+    setTimeout(() => {
+      addToCard(product); // sepete ekle
+      setLoadingId(null); // loading bitir
+    }, 1000); // 1 saniye
+  };
+
+  const categories = data.reduce((acc, product) => {
+    const category = product.category;
+
+    if (!acc[category]) {
+      acc[category] = 0;
+    }
+
+    acc[category]++;
+
+    return acc;
+  }, {});
+
+  const brands = [...new Set(data.map((product) => product.brand))];
+  const handleBrandFilter = (brand) => {
+    setSelectedBrands((prev) => {
+      if (prev.includes(brand)) {
+        return prev.filter((item) => item !== brand);
+      }
+
+      return [...prev, brand];
+    });
+  };
+  const handleColorFilter = (color) => {
+    setSelectedColors((prev) => {
+      if (prev.includes(color)) {
+        return prev.filter((item) => item !== color);
+      }
+
+      return [...prev, color];
+    });
+  };
+  const handleRatingFilter = (rating) => {
+    setSelectedRatings((prev) => {
+      if (prev.includes(rating)) {
+        return prev.filter((item) => item !== rating);
+      }
+
+      return [...prev, rating];
+    });
+  };
+  const priceRanges = [
+    {
+      label: "Free-$100",
+      min: 0,
+      max: 100,
+    },
+    {
+      label: "$100-$200",
+      min: 100,
+      max: 200,
+    },
+    {
+      label: "$200-$400",
+      min: 200,
+      max: 400,
+    },
+    {
+      label: "$400-$600",
+      min: 400,
+      max: 600,
+    },
+    {
+      label: "$600-$800",
+      min: 600,
+      max: 800,
+    },
+    {
+      label: "over $1000",
+      min: 1000,
+      max: Infinity,
+    },
+  ];
+  const filteredData = data.filter((product) => {
+    const priceMatch =
+      selectedPrices.length === 0 ||
+      selectedPrices.some((label) => {
+        const selectedRange = priceRanges.find(
+          (range) => range.label === label,
+        );
+
+        if (!selectedRange) return false;
+
+        return (
+          product.price >= selectedRange.min &&
+          product.price < selectedRange.max
+        );
+      });
+    const colors = ["Red", "Blue", "Green", "Black", "White"];
+    const brandMatch =
+      selectedBrands.length === 0 || selectedBrands.includes(product.brand);
+
+    const ratingMatch =
+      selectedRatings.length === 0 || selectedRatings.includes(product.rating);
+
+    const colorMatch =
+      selectedColors.length === 0 || selectedColors.includes(product.color);
+
+    return priceMatch && brandMatch && ratingMatch && colorMatch;
+  });
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortType === "lowToHigh") {
+      return a.price - b.price;
+    }
+
+    if (sortType === "highToLow") {
+      return b.price - a.price;
+    }
+
+    return 0;
+  });
+
+  const handlePriceFilter = (priceRange) => {
+    setSelectedPrices((prev) => {
+      if (prev.includes(priceRange)) {
+        return prev.filter((item) => item !== priceRange);
+      }
+
+      return [...prev, priceRange];
+    });
+  };
 
   return (
     <div className="container mt-5">
@@ -33,114 +170,22 @@ export default function ShopGrid() {
             </h6>
 
             <ul className="list-group list-group-flush my-3">
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
+              {Object.entries(categories).map(([category, count]) => (
+                <li
+                  className="list-group-item product-item"
+                  style={{ border: "none" }}
+                  key={category}
                 >
-                  Computers & Laptop
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Electric accessories
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Mainboard & CPU
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Mouse & Keyboard
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Wired Headphone
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Gaming Gadgets
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Smart Watches
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Cell Phones
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
-              <li
-                className="list-group-item product-item"
-                style={{ border: "none" }}
-              >
-                <a
-                  className="text-decoration-none product-category-item"
-                  href="#"
-                >
-                  Headphone
-                </a>
-                <span className="product-list-item-number">09</span>
-              </li>
+                  <a
+                    className="text-decoration-none product-category-item"
+                    href="#"
+                  >
+                    {category}
+                  </a>
+
+                  <span className="product-list-item-number">{count}</span>
+                </li>
+              ))}
             </ul>
           </div>
           <div
@@ -160,96 +205,38 @@ export default function ShopGrid() {
             </h6>
 
             <ul className="list-group list-group-flush my-3">
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
+              {priceRanges.map((range) => {
+                const count = filteredData.filter(
+                  (product) =>
+                    product.price >= range.min && product.price < range.max,
+                ).length;
+
+                return (
+                  <li
+                    className="list-group-item product-filter-item"
+                    style={{ border: "none" }}
+                    key={range.label}
                   >
-                    Free-$100
-                  </a>
-                </span>
-                <span className="product-list-item-number">145</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    $100-$200
-                  </a>
-                </span>
-                <span className="product-list-item-number">56</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    $200-$400
-                  </a>
-                </span>
-                <span className="product-list-item-number">23</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    $400-$600
-                  </a>
-                </span>
-                <span className="product-list-item-number">43</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    $600-$800
-                  </a>
-                </span>
-                <span className="product-list-item-number">65</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    over $1000
-                  </a>
-                </span>
-                <span className="product-list-item-number">56</span>
-              </li>
+                    <span>
+                      <input
+                        className="form-check-input mx-2"
+                        type="checkbox"
+                        checked={selectedPrices.includes(range.label)}
+                        onChange={() => handlePriceFilter(range.label)}
+                      />
+
+                      <a
+                        className="text-decoration-none product-filter-item"
+                        href="#"
+                      >
+                        {range.label}
+                      </a>
+                    </span>
+
+                    <span className="product-list-item-number">{count}</span>
+                  </li>
+                );
+              })}
             </ul>
 
             <p
@@ -262,99 +249,46 @@ export default function ShopGrid() {
             >
               brands
             </p>
-
             <ul className="list-group list-group-flush my-3">
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    Apple
-                  </a>
-                </span>
-                <span className="product-list-item-number">12</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    Sony
-                  </a>
-                </span>
-                <span className="product-list-item-number">34</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    Toshiba
-                  </a>
-                </span>
-                <span className="product-list-item-number">56</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    Assus
-                  </a>
-                </span>
-                <span className="product-list-item-number">78</span>
-              </li>
-              <li
-                className="list-group-item product-filter-item"
-                style={{ border: "none" }}
-              >
-                <span>
-                  <input className="form-check-input mx-2" type="checkbox" />
-                  <a
-                    className="text-decoration-none product-filter-item"
-                    href="#"
-                  >
-                    Samsung
-                  </a>
-                </span>
-                <span className="product-list-item-number">24</span>
-              </li>
+              {brands.map((brand) => (
+                <li
+                  className="list-group-item product-filter-item"
+                  style={{ border: "none" }}
+                  key={brand}
+                >
+                  <span>
+                    <input
+                      className="form-check-input mx-2"
+                      type="checkbox"
+                      checked={selectedBrands.includes(brand)}
+                      onChange={() => handleBrandFilter(brand)}
+                    />
+
+                    <a
+                      className="text-decoration-none product-filter-item"
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      {brand}
+                    </a>
+                  </span>
+                </li>
+              ))}
             </ul>
 
             <p
               className="px-3 pt-3"
-              style={{
-                color: "#425A8B",
-                fontSize: "16px",
-                fontWeight: "bold",
-              }}
+              style={{ color: "#425A8B", fontSize: "16px", fontWeight: "bold" }}
             >
               colors
             </p>
 
             <div className="row p-3">
-              <div className="col-md-12 ">
-                <ColorPicker className="" value={color} onChange={setColor} />
+              <div className="col-md-12">
+                <ColorPicker
+                  value={selectedColors}
+                  onChange={handleColorFilter}
+                />
               </div>
             </div>
 
@@ -407,193 +341,30 @@ export default function ShopGrid() {
                             </p>
 
                             <ul className="list-group list-group-flush my-3">
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Apple
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Samsung
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Baseus
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Remax
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Handtown
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Elecom
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Razer
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Auto Focus
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Nillkin
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    Logitech
-                                  </a>
-                                </span>
-                              </li>
-                              <li
-                                className="list-group-item product-filter-item"
-                                style={{ border: "none" }}
-                              >
-                                <span>
-                                  <input
-                                    className="form-check-input mx-2"
-                                    type="checkbox"
-                                  />
-                                  <a
-                                    className="text-decoration-none product-filter-item"
-                                    href="#"
-                                  >
-                                    ChromeBook
-                                  </a>
-                                </span>
-                              </li>
+                              {brands.map((brand) => (
+                                <li
+                                  className="list-group-item product-filter-item"
+                                  style={{ border: "none" }}
+                                  key={brand}
+                                >
+                                  <span>
+                                    <input
+                                      className="form-check-input mx-2"
+                                      type="checkbox"
+                                      checked={selectedBrands.includes(brand)}
+                                      onChange={() => handleBrandFilter(brand)}
+                                    />
+
+                                    <a
+                                      className="text-decoration-none product-filter-item"
+                                      href="#"
+                                      onClick={(e) => e.preventDefault()}
+                                    >
+                                      {brand}
+                                    </a>
+                                  </span>
+                                </li>
+                              ))}
                             </ul>
                           </div>
                           <div className="col-md-8">
@@ -862,86 +633,41 @@ export default function ShopGrid() {
                                   Rating
                                 </p>
                                 <ul className="list-group list-group-flush my-3">
-                                  <li
-                                    className="list-group-item product-filter-item"
-                                    style={{ border: "none" }}
-                                  >
-                                    <span>
-                                      <a
-                                        className="text-decoration-none product-filter-item"
-                                        href="#"
-                                      >
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                      </a>
-                                      (5) star
-                                    </span>
-                                  </li>
-                                  <li
-                                    className="list-group-item product-filter-item"
-                                    style={{ border: "none" }}
-                                  >
-                                    <span>
-                                      <a
-                                        className="text-decoration-none product-filter-item"
-                                        href="#"
-                                      >
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                      </a>
-                                      (4) star
-                                    </span>
-                                  </li>
-                                  <li
-                                    className="list-group-item product-filter-item"
-                                    style={{ border: "none" }}
-                                  >
-                                    <span>
-                                      <a
-                                        className="text-decoration-none product-filter-item"
-                                        href="#"
-                                      >
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                      </a>
-                                      (3) star
-                                    </span>
-                                  </li>
-                                  <li
-                                    className="list-group-item product-filter-item"
-                                    style={{ border: "none" }}
-                                  >
-                                    <span>
-                                      <a
-                                        className="text-decoration-none product-filter-item"
-                                        href="#"
-                                      >
-                                        <i class="bi bi-star-fill star"></i>
-                                        <i class="bi bi-star-fill star"></i>
-                                      </a>
-                                      (2) star
-                                    </span>
-                                  </li>
-                                  <li
-                                    className="list-group-item product-filter-item"
-                                    style={{ border: "none" }}
-                                  >
-                                    <span>
-                                      <a
-                                        className="text-decoration-none product-filter-item"
-                                        href="#"
-                                      >
-                                        <i class="bi bi-star-fill star"></i>
-                                      </a>
-                                      (1) star
-                                    </span>
-                                  </li>
+                                  {[5, 4, 3, 2, 1].map((rating) => (
+                                    <li
+                                      key={rating}
+                                      className="list-group-item product-filter-item"
+                                      style={{ border: "none" }}
+                                    >
+                                      <span>
+                                        <input
+                                          className="form-check-input mx-2"
+                                          type="checkbox"
+                                          checked={selectedRatings.includes(
+                                            rating,
+                                          )}
+                                          onChange={() =>
+                                            handleRatingFilter(rating)
+                                          }
+                                        />
+
+                                        <span>
+                                          {[...Array(rating)].map(
+                                            (_, index) => (
+                                              <i
+                                                key={index}
+                                                className="bi bi-star-fill star"
+                                              ></i>
+                                            ),
+                                          )}
+                                        </span>
+
+                                        <span className="ms-1">
+                                          ({rating}) star
+                                        </span>
+                                      </span>
+                                    </li>
+                                  ))}
                                 </ul>
                               </div>
                               <div className="col-12 col-sm-6 col-xl-4">
@@ -1128,7 +854,7 @@ export default function ShopGrid() {
                   data-bs-target="#carouselExampleControls"
                   data-bs-slide="prev"
                 >
-                  <i class="bi bi-chevron-left"></i>{" "}
+                  <i className="bi bi-chevron-left"></i>{" "}
                 </button>
 
                 <button
@@ -1137,7 +863,7 @@ export default function ShopGrid() {
                   data-bs-target="#carouselExampleControls"
                   data-bs-slide="next"
                 >
-                  <i class="bi bi-chevron-right"></i>{" "}
+                  <i className="bi bi-chevron-right"></i>{" "}
                 </button>
               </div>
             </div>
@@ -1148,228 +874,38 @@ export default function ShopGrid() {
               data-bs-ride="carousel"
             >
               <div className="carousel-inner">
-                <div className="carousel-item active my-3">
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
+                {data.slice(0, 8).map((product) => (
+                  <div className="carousel-item active my-3">
+                    <div className="row my-3">
+                      <div className="col-md-4">
+                        <img
+                          className="img-fluid"
+                          src={product.img}
+                          alt="img"
+                        />
+                      </div>
 
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
+                      <div className="col-md-8">
+                        <h6 className="bs-title">{product.title}</h6>
 
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
+                        <i className="bi bi-star-fill star"></i>
+                        <i className="bi bi-star-fill star"></i>
+                        <i className="bi bi-star-fill star"></i>
+                        <i className="bi bi-star-fill star"></i>
+                        <i className="bi bi-star-fill star"></i>
 
-                      <span className="bs-raiting">(65)</span>
+                        <span className="bs-raiting">({product.raters})</span>
 
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
+                        <div className="mt-2">
+                          <span className="bs-price">
+                            ${fmt(product.price)}
+                          </span>
+                          <del className="ms-2">${fmt(product.prevprice)}</del>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="carousel-item active my-3">
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="carousel-item active my-3">
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row my-3">
-                    <div className="col-md-4">
-                      <img className="img-fluid" src={imgsp3} alt="img" />
-                    </div>
-
-                    <div className="col-md-8">
-                      <h6 className="bs-title">
-                        HP Slim Desktop, Intel Celeron J4025, 4GB RAM
-                      </h6>
-
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-                      <i className="bi bi-star-fill star"></i>
-
-                      <span className="bs-raiting">(65)</span>
-
-                      <div className="mt-2">
-                        <span className="bs-price">2290$</span>
-                        <del className="ms-2">187$</del>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1379,86 +915,124 @@ export default function ShopGrid() {
         <div className="col-md-9 ">
           <img src={shopgrid} className="img-fluid " alt="" />
 
-          <div class="d-flex mt-5 flex-wrap align-items-center gap-3 pb-3 border-bottom text-secondary-emphasis">
-            <button class="btn tb-btn px-3 py-2">
-              <i class="bi bi-sliders me-2"></i>All Filters
+          <div className="d-flex mt-5 flex-wrap align-items-center gap-3 pb-3 border-bottom text-secondary-emphasis">
+            <button
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal"
+              className="btn tb-btn px-3 py-2"
+            >
+              <i className="bi bi-sliders me-2"></i>All Filters
             </button>
 
-            <div class="ms-auto d-flex flex-wrap align-items-center gap-3">
+            <div className="ms-auto d-flex flex-wrap align-items-center gap-3">
               <span>Showing 1–16 of 17 results</span>
-              <div class="tb-divider d-none d-md-block"></div>
+              <div className="tb-divider d-none d-md-block"></div>
 
-              <div class="dropdown d-flex align-items-center gap-2">
-                <span class="tb-label">Sort by:</span>
+              <div className="dropdown d-flex align-items-center gap-2">
+                <span className="tb-label">Sort by:</span>
                 <button
-                  class="tb-select dropdown-toggle"
+                  className="tb-select dropdown-toggle"
                   data-bs-toggle="dropdown"
                 >
-                  Latest products
+                  {sortType === "lowToHigh"
+                    ? "Price: low to high"
+                    : sortType === "highToLow"
+                      ? "Price: high to low"
+                      : "Latest products"}
                 </button>
-                <ul class="dropdown-menu">
+                <ul className="dropdown-menu">
                   <li>
-                    <a class="dropdown-item" href="#">
+                    <button
+                      className="dropdown-item"
+                      onClick={() => setSortType("latest")}
+                    >
                       Latest products
-                    </a>
+                    </button>
                   </li>
+
                   <li>
-                    <a class="dropdown-item" href="#">
+                    <button
+                      className="dropdown-item"
+                      onClick={() => setSortType("lowToHigh")}
+                    >
                       Price: low to high
-                    </a>
+                    </button>
                   </li>
+
                   <li>
-                    <a class="dropdown-item" href="#">
+                    <button
+                      className="dropdown-item"
+                      onClick={() => setSortType("highToLow")}
+                    >
                       Price: high to low
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
-              <div class="tb-divider d-none d-md-block"></div>
+              <div className="tb-divider d-none d-md-block"></div>
 
-              <div class="dropdown d-flex align-items-center gap-2">
-                <span class="tb-label">Show</span>
+              <div className="dropdown d-flex align-items-center gap-2">
+                <span className="tb-label">Show</span>
                 <button
-                  class="tb-select dropdown-toggle"
+                  className="tb-select dropdown-toggle"
                   data-bs-toggle="dropdown"
                 >
-                  30 items
+                  {showitems} items
                 </button>
-                <ul class="dropdown-menu">
+                <ul className="dropdown-menu">
                   <li>
-                    <a class="dropdown-item" href="#">
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => setShowItems(7)}
+                    >
+                      7 items
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => setShowItems(15)}
+                    >
                       15 items
                     </a>
                   </li>
                   <li>
-                    <a class="dropdown-item" href="#">
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={() => setShowItems(30)}
+                    >
                       30 items
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#">
-                      60 items
                     </a>
                   </li>
                 </ul>
               </div>
-              <div class="tb-divider d-none d-md-block"></div>
+              <div className="tb-divider d-none d-md-block"></div>
 
-              <div class="d-flex gap-2">
-                <button class="tb-view active">
-                  <i class="bi bi-grid"></i>
+              <div className="d-flex gap-2">
+                <button
+                  onClick={() => setCardType("grid")}
+                  className="tb-view active"
+                >
+                  <i className="bi bi-grid"></i>
                 </button>
-                <button class="tb-view">
-                  <i class="bi bi-list-ul"></i>
+                <button onClick={() => setCardType("list")} className="tb-view">
+                  <i className="bi bi-list-ul"></i>
                 </button>
               </div>
             </div>
           </div>
           <div className="row">
-             {data.slice(0, 24).map((item) => (
-              <Card key={item.id} product={item} />
-
-              ))};
+            {cardType === "grid"
+              ? sortedData
+                  .slice(0, showitems)
+                  .map((item) => <Card key={item.id} product={item} />)
+              : sortedData
+                  .slice(0, showitems)
+                  .map((item) => <Card2 key={item.id} product={item} />)}
           </div>
         </div>
       </div>

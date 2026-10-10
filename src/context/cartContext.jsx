@@ -3,15 +3,15 @@ import React, { createContext, useEffect, useState } from "react";
 export const CardContext = createContext();
 
 export const CardProvider = ({ children }) => {
-  const [cards, setCards] = useState([]);
-
-  useEffect(() => {
-    const savedCards = localStorage.getItem("cards");
-
-    if (savedCards) {
-      setCards(JSON.parse(savedCards));
+  const [cards, setCards] = useState(() => {
+    try {
+      const savedCards = localStorage.getItem("cards");
+      return savedCards ? JSON.parse(savedCards) : [];
+    } catch (error) {
+      console.error("Sepet yüklenemedi:", error);
+      return [];
     }
-  }, []);
+  });
 
   useEffect(() => {
     localStorage.setItem("cards", JSON.stringify(cards));
@@ -24,7 +24,7 @@ export const CardProvider = ({ children }) => {
       if (existingProduct) {
         return prevCart.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: (item.quantity || 1) + 1 }
             : item,
         );
       }
@@ -47,10 +47,10 @@ export const CardProvider = ({ children }) => {
     );
   };
 
-  const totalitems = cards.reduce((sum, item) => sum + item.quantity, 0);
+  const totalitems = cards.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   const totalprice = cards.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + Number(item.price) * (item.quantity || 1),
     0,
   );
 
